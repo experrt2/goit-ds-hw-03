@@ -1,3 +1,5 @@
+import sys
+
 from pymongo import MongoClient, errors
 from pymongo.server_api import ServerApi
 
@@ -40,7 +42,8 @@ def find_by_name(name, db):
 def update_age(name, age, db):
     document = db.cats.update_one({"name": name}, {"$set": {"age": age}})
 
-    if age is not int:
+    # if age is not int:
+    if not isinstance(age, int):
         raise ValueError('Expecting age to be integer')
 
     if document.matched_count == 0:
@@ -56,23 +59,24 @@ def update_age(name, age, db):
 # Створіть функцію, яка дозволяє додати нову характеристику до списку features кота за ім'ям.
 @pymongo_error_handler
 def add_features(name, feature, db):
-    document = db.cats.update_one({'name': name}, {'$push': {'features': feature}})
-    if document is None:
+    update_result = db.cats.update_one({'name': name}, {'$push': {'features': feature}})
+
+    if update_result.matched_count == 0:
         print(f"Document with name = '{name}' not found.")
-        return None
+        return False
     else:
-        return document
+        return True
 
 # Реалізуйте функцію для видалення запису з колекції за ім'ям тварини.
 @pymongo_error_handler
 def delete_by_name(name, db):
-    document = db.cats.delete_one({"name": name})
+    deleted_document = db.cats.delete_one({"name": name})
 
-    if document is None:
+    if deleted_document.deleted_count == 0:
         print(f"Document with name = '{name}' not found.")
-        return None
+        return False
     else:
-        return document
+        return True
 
 # Реалізуйте функцію для видалення всіх записів із колекції.
 @pymongo_error_handler
@@ -90,7 +94,11 @@ db = client.book
 
 name = 'Liza'
 age = 'fsa'
-print(update_age(name, age, db))
+feature = 'test3'
+# print(update_age(name, age, db))
+# print(add_features(name, feature, db))
+name = 'hnjnjj'
+print(delete_by_name(name, db))
 
 
 client.close()
